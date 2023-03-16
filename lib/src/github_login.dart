@@ -17,6 +17,7 @@ class GithubLoginWidget extends StatefulWidget {
     required this.githubScopes,
     super.key,
   });
+
   final AuthenticatedBuilder builder;
   final String githubClientId;
   final String githubClientSecret;
@@ -36,6 +37,7 @@ class _GithubLoginState extends State<GithubLoginWidget> {
   @override
   Widget build(BuildContext context) {
     final client = _client;
+
     if (client != null) {
       return widget.builder(context, client);
     }
@@ -68,6 +70,7 @@ class _GithubLoginState extends State<GithubLoginWidget> {
           'githubClientId and githubClientSecret must be not empty. '
           'See `lib/github_oauth_credentials.dart` for more detail.');
     }
+
     var grant = oauth2.AuthorizationCodeGrant(
       widget.githubClientId,
       _authorizationEndpoint,
@@ -75,6 +78,7 @@ class _GithubLoginState extends State<GithubLoginWidget> {
       secret: widget.githubClientSecret,
       httpClient: _JsonAcceptingHttpClient(),
     );
+
     var authorizationUrl =
         grant.getAuthorizationUrl(redirectUrl, scopes: widget.githubScopes);
 
@@ -82,6 +86,7 @@ class _GithubLoginState extends State<GithubLoginWidget> {
     var responseQueryParameters = await _listen();
     var client =
         await grant.handleAuthorizationResponse(responseQueryParameters);
+
     return client;
   }
 
@@ -96,21 +101,26 @@ class _GithubLoginState extends State<GithubLoginWidget> {
   Future<Map<String, String>> _listen() async {
     var request = await _redirectServer!.first;
     var params = request.uri.queryParameters;
+
     request.response.statusCode = 200;
     request.response.headers.set('content-type', 'text/plain');
     request.response.writeln('Authenticated! You can close this tab.');
+
     await request.response.close();
     await _redirectServer!.close();
     _redirectServer = null;
+
     return params;
   }
 }
 
 class _JsonAcceptingHttpClient extends http.BaseClient {
   final _httpClient = http.Client();
+
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) {
     request.headers['Accept'] = 'application/json';
+
     return _httpClient.send(request);
   }
 }
@@ -118,6 +128,7 @@ class _JsonAcceptingHttpClient extends http.BaseClient {
 class GithubLoginException implements Exception {
   const GithubLoginException(this.message);
   final String message;
+
   @override
   String toString() => message;
 }
